@@ -246,7 +246,7 @@ It demonstrates:
 ### 🔐 Authentication
 
 #### Login Page
-![Login] (screenshots/login.png)
+![Login](screenshots/login.png)
 
 #### Register Page
 ![Register](screenshots/register.png)
@@ -256,26 +256,26 @@ It demonstrates:
 ### 👤 User Dashboard
 
 #### Profile Page
-![Profile] (screenshots/profile.png)
+![Profile](screenshots/profile.png)
 
 ---
 
 ### 🎢 Park Management
 
 #### Rides Management
-![Rides] (screenshots/rides.png)
+![Rides](screenshots/rides.png)
 
 #### Visitors Management
-![Visitors] (screenshots/visitors.png)
+![Visitors](screenshots/visitors.png)
 
 #### Tickets Management
-![Tickets] (screenshots/tickets.png)
+![Tickets](screenshots/tickets.png)
 
 #### Employees Management
-![Employees] (screenshots/employees.png)
+![Employees](screenshots/employees.png)
 
 #### Maintenance Management
-![Maintenance] (screenshots/maintenance.png)
+![Maintenance](screenshots/maintenance1.png)(screenshots/maintenance2.png)
 
 ---
 
