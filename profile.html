@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ThrillWorld - Profile</title>
+  <link rel="stylesheet" href="./style.css" />
+</head>
+<body data-page="profile">
+<header class="topbar">
+  <div class="brand">ThrillWorld</div>
+  <nav class="nav-links">
+    <a href="/profile.html">Profile</a>
+    <a href="/rides.html">Rides</a>
+    <a href="/visitors.html">Visitors</a>
+    <a href="/tickets.html">Tickets</a>
+    <a href="/employees.html">Employees</a>
+    <a href="/maintenance.html">Maintenance</a>
+    <button onclick="logout()">Logout</button>
+  </nav>
+</header>
+
+  <main class="dashboard-page">
+    <div class="dashboard-shell">
+      <div class="dashboard-badge">Member Area</div>
+      <h1 class="dashboard-title">My Profile</h1>
+      <p class="dashboard-subtitle">
+        Access your account details securely through a protected API route.
+      </p>
+
+      <div id="messageBox" class="alert"></div>
+
+      <div class="profile-card">
+        <div class="profile-grid">
+          <div class="info-box">
+            <span class="info-label">User ID</span>
+            <span class="info-value" id="userId">-</span>
+          </div>
+
+          <div class="info-box">
+            <span class="info-label">Full Name</span>
+            <span class="info-value" id="userName">-</span>
+          </div>
+
+          <div class="info-box">
+            <span class="info-label">Email Address</span>
+            <span class="info-value" id="userEmail">-</span>
+          </div>
+
+          <div class="info-box">
+            <span class="info-label">Authentication</span>
+            <span class="info-value">JWT Protected</span>
+          </div>
+        </div>
+
+        <div class="actions-row">
+          <button class="btn-main" onclick="loadProfile()">Refresh profile</button>
+          <a class="btn-secondary" href="./login.html">Back to login</a>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    const API_BASE = "http://localhost:3002/api";
+
+    function showMessage(message, type = "error") {
+      const box = document.getElementById("messageBox");
+      box.className = `alert ${type}`;
+      box.textContent = message;
+    }
+
+    async function loadProfile() {
+      try {
+        const token = localStorage.getItem("token");
+
+        if (!token) {
+          showMessage("No token found. Please log in first.", "error");
+          return;
+        }
+
+        const response = await fetch(`${API_BASE}/auth/me`, {
+          method: "GET",
+          headers: {
+            "Authorization": `Bearer ${token}`
+          }
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          showMessage(data.message || "Unable to load profile.", "error");
+          return;
+        }
+
+        document.getElementById("userId").textContent = data.user._id || data.user.id || "-";
+        document.getElementById("userName").textContent = data.user.name || "-";
+        document.getElementById("userEmail").textContent = data.user.email || "-";
+
+        showMessage("Profile loaded successfully.", "success");
+      } catch (error) {
+        showMessage(error.message, "error");
+      }
+    }
+
+    function logout() {
+      localStorage.removeItem("token");
+      localStorage.removeItem("user");
+      window.location.href = "./login.html";
+    }
+
+    loadProfile();
+  </script>
+</body>
+</html>

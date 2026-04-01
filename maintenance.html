@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>ThrillWorld - Maintenance</title>
+  <link rel="stylesheet" href="./style.css"/>
+</head>
+<body data-page="maintenance">
+
+<header class="topbar">
+  <div class="brand">ThrillWorld</div>
+  <nav class="nav-links">
+    <a href="/profile.html">Profile</a>
+    <a href="/visitors.html">Visitors</a>
+    <a href="/rides.html">Rides</a>
+    <a href="/employees.html">Employees</a>
+    <a href="/tickets.html">Tickets</a>
+    <a href="/maintenance.html">Maintenance</a>
+    <button onclick="logout()">Logout</button>
+  </nav>
+</header>
+
+<main class="data-page">
+  <div class="data-shell">
+
+    <div class="page-heading">
+      <h1>Maintenance Management</h1>
+      <p>Track ride maintenance operations, assignments, priorities and status updates.</p>
+    </div>
+
+    <div id="messageBox" class="alert"></div>
+
+    <section class="form-panel">
+      <h2>Add Maintenance Task</h2>
+
+      <div class="form-grid">
+        <div>
+          <label for="maintenanceId">Maintenance ID</label>
+          <input id="maintenanceId" type="number" placeholder="Enter maintenance ID" />
+        </div>
+
+        <div>
+          <label for="maintenanceRideId">Ride ID</label>
+          <input id="maintenanceRideId" type="number" placeholder="Enter ride ID" />
+        </div>
+
+        <div>
+          <label for="maintenanceEmployeeId">Employee ID</label>
+          <input id="maintenanceEmployeeId" type="number" placeholder="Enter employee ID" />
+        </div>
+
+        <div>
+          <label for="maintenanceDate">Scheduled Date</label>
+          <input id="maintenanceDate" type="date" />
+        </div>
+
+        <div class="full">
+          <label for="maintenanceDescription">Description</label>
+          <textarea id="maintenanceDescription" placeholder="Describe the maintenance task"></textarea>
+        </div>
+
+        <div>
+          <label for="maintenanceStatus">Status</label>
+          <select id="maintenanceStatus">
+            <option value="scheduled">Scheduled</option>
+            <option value="in-progress">In Progress</option>
+            <option value="completed">Completed</option>
+          </select>
+        </div>
+
+        <div>
+          <label for="maintenancePriority">Priority</label>
+          <select id="maintenancePriority">
+            <option value="low">Low</option>
+            <option value="normal" selected>Normal</option>
+            <option value="urgent">Urgent</option>
+          </select>
+        </div>
+
+        <div>
+          <label for="maintenanceCostEstimate">Cost Estimate</label>
+          <input id="maintenanceCostEstimate" type="number" step="0.01" placeholder="Enter cost estimate" />
+        </div>
+
+        <div>
+          <label for="maintenanceCompletedAt">Completed At</label>
+          <input id="maintenanceCompletedAt" type="date" />
+        </div>
+      </div>
+
+      <div class="toolbar">
+        <button onclick="createMaintenance()">Create Task</button>
+        <button onclick="loadMaintenance()">Refresh List</button>
+      </div>
+    </section>
+
+    <section id="maintenanceContainer" class="card-grid"></section>
+
+  </div>
+</main>
+
+<script src="./app.js"></script>
+<script>
+  requireAuth();
+
+  async function loadMaintenance() {
+    try {
+      const data = await apiGet("/maintenance");
+      const tasks = Array.isArray(data) ? data : data.maintenance || [];
+      const container = document.getElementById("maintenanceContainer");
+
+      if (!tasks.length) {
+        container.innerHTML = `<div class="empty-state">No maintenance tasks found.</div>`;
+        showBox("messageBox", "No maintenance tasks found.", "success");
+        return;
+      }
+
+      container.innerHTML = tasks.map(task => `
+        <div class="data-card">
+          <h3>${formatMaintenanceTitle(task)}</h3>
+
+          <p><strong>ID:</strong> ${task.id ?? "-"}</p>
+          <p><strong>Ride ID:</strong> ${task.rideId ?? "-"}</p>
+          <p><strong>Employee ID:</strong> ${task.employeeId ?? "-"}</p>
+          <p><strong>Date:</strong> ${formatDate(task.date)}</p>
+          <p><strong>Description:</strong> ${task.description || "-"}</p>
+          <p><strong>Status:</strong> ${task.status || "-"}</p>
+          <p><strong>Priority:</strong> ${task.priority || "-"}</p>
+          <p><strong>Cost Estimate:</strong> ${task.costEstimate != null ? formatCurrency(task.costEstimate) : "-"}</p>
+          <p><strong>Completed At:</strong> ${formatDate(task.completedAt)}</p>
+
+          <div class="card-actions">
+            <button class="btn-delete" onclick="deleteMaintenance(${task.id})">Delete</button>
+          </div>
+        </div>
+      `).join("");
+
+      showBox("messageBox", "Maintenance tasks loaded successfully.", "success");
+    } catch (error) {
+      showBox("messageBox", error.message, "error");
+    }
+  }
+
+  async function createMaintenance() {
+    try {
+      const dateValue = document.getElementById("maintenanceDate").value;
+      const completedAtValue = document.getElementById("maintenanceCompletedAt").value;
+
+      const body = {
+        id: Number(document.getElementById("maintenanceId").value),
+        rideId: Number(document.getElementById("maintenanceRideId").value),
+        employeeId: Number(document.getElementById("maintenanceEmployeeId").value),
+        date: dateValue ? new Date(dateValue).toISOString() : null,
+        description: document.getElementById("maintenanceDescription").value.trim(),
+        status: document.getElementById("maintenanceStatus").value,
+        priority: document.getElementById("maintenancePriority").value,
+        costEstimate: document.getElementById("maintenanceCostEstimate").value
+          ? Number(document.getElementById("maintenanceCostEstimate").value)
+          : undefined,
+        completedAt: completedAtValue ? new Date(completedAtValue).toISOString() : undefined
+      };
+
+      if (!body.id || !body.rideId || !body.employeeId || !body.date || !body.description) {
+        showBox("messageBox", "Please fill in all required fields correctly.", "error");
+        return;
+      }
+
+      await apiPost("/maintenance", body);
+
+      showBox("messageBox", "Maintenance task created successfully.", "success");
+      clearMaintenanceForm();
+      loadMaintenance();
+    } catch (error) {
+      showBox("messageBox", error.message, "error");
+    }
+  }
+
+  async function deleteMaintenance(id) {
+    if (!confirm("Delete this maintenance task?")) return;
+
+    try {
+      await apiDelete(`/maintenance/${id}`);
+      showBox("messageBox", "Maintenance task deleted successfully.", "success");
+      loadMaintenance();
+    } catch (error) {
+      showBox("messageBox", error.message, "error");
+    }
+  }
+
+  function clearMaintenanceForm() {
+    document.getElementById("maintenanceId").value = "";
+    document.getElementById("maintenanceRideId").value = "";
+    document.getElementById("maintenanceEmployeeId").value = "";
+    document.getElementById("maintenanceDate").value = "";
+    document.getElementById("maintenanceDescription").value = "";
+    document.getElementById("maintenanceStatus").value = "scheduled";
+    document.getElementById("maintenancePriority").value = "normal";
+    document.getElementById("maintenanceCostEstimate").value = "";
+    document.getElementById("maintenanceCompletedAt").value = "";
+  }
+
+  function formatDate(dateString) {
+    if (!dateString) return "-";
+    const date = new Date(dateString);
+    if (isNaN(date.getTime())) return "-";
+    return date.toLocaleDateString();
+  }
+
+  function formatCurrency(value) {
+    if (value == null || isNaN(value)) return "-";
+    return "$" + Number(value).toFixed(2);
+  }
+
+  function formatMaintenanceTitle(task) {
+    return `Task #${task.id ?? "-"}`;
+  }
+
+  loadMaintenance();
+</script>
+
+</body>
+</html>

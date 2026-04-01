@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ThrillWorld - Register</title>
+  <link rel="stylesheet" href="./style.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">ThrillWorld</div>
+    <nav class="nav-links">
+      <a href="./login.html">Login</a>
+      <a href="./register.html">Register</a>
+    </nav>
+  </header>
+
+  <main class="page-shell">
+    <div class="auth-wrapper">
+      <div class="auth-left">
+        <div class="auth-badge">ThrillWorld • API • Access</div>
+        <h1>CREATE YOUR ACCOUNT</h1>
+        <p>
+          Join the ThrillWorld platform and start managing your amusement park
+          experience with a modern and secure system.
+        </p>
+      </div>
+
+      <div class="auth-right">
+        <div class="auth-card">
+          <div class="auth-logo">THRILLWORLD</div>
+          <h2 class="auth-title">Register</h2>
+          <p class="auth-subtitle">
+            Create your account to access protected routes and manage your profile.
+          </p>
+
+          <div id="messageBox" class="alert"></div>
+
+          <div class="form-group">
+            <label for="name">Full Name</label>
+            <input id="name" class="form-input" type="text" placeholder="Enter your full name" />
+          </div>
+
+          <div class="form-group">
+            <label for="email">Email Address</label>
+            <input id="email" class="form-input" type="email" placeholder="Enter your email address" />
+          </div>
+
+          <div class="form-group">
+            <label for="password">Password</label>
+            <input id="password" class="form-input" type="password" placeholder="Create a password" />
+          </div>
+
+          <button class="btn-main" onclick="registerUser()">Create account</button>
+
+          <div class="auth-footer">
+            Already have an account?
+            <a href="./login.html">Sign in</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    const API_BASE = "http://localhost:3002/api";
+
+    function showMessage(message, type = "error") {
+      const box = document.getElementById("messageBox");
+      box.className = `alert ${type}`;
+      box.textContent = message;
+    }
+
+    async function registerUser() {
+      try {
+        const name = document.getElementById("name").value.trim();
+        const email = document.getElementById("email").value.trim();
+        const password = document.getElementById("password").value.trim();
+
+        const response = await fetch(`${API_BASE}/auth/register`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({ name, email, password })
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          showMessage(data.message || "Registration failed.", "error");
+          return;
+        }
+
+        localStorage.setItem("token", data.token);
+        localStorage.setItem("user", JSON.stringify(data.user));
+
+        showMessage("Account created successfully. Redirecting...", "success");
+
+        setTimeout(() => {
+          window.location.href = "./profile.html";
+        }, 1200);
+      } catch (error) {
+        showMessage(error.message, "error");
+      }
+    }
+  </script>
+</body>
+</html>

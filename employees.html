@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>ThrillWorld - Employees</title>
+  <link rel="stylesheet" href="./style.css"/>
+</head>
+<body data-page="employees">
+
+<header class="topbar">
+  <div class="brand">ThrillWorld</div>
+  <nav class="nav-links">
+    <a href="/profile.html">Profile</a>
+    <a href="/rides.html">Rides</a>
+    <a href="/visitors.html">Visitors</a>
+    <a href="/tickets.html">Tickets</a>
+    <a href="/employees.html">Employees</a>
+    <a href="/maintenance.html">Maintenance</a>
+    <button onclick="logout()">Logout</button>
+  </nav>
+</header>
+
+<main class="data-page">
+  <div class="data-shell">
+
+    <div class="page-heading">
+      <h1>Employees Management</h1>
+      <p>Manage all park employees via API.</p>
+    </div>
+
+    <div id="messageBox" class="alert"></div>
+
+    <!-- FORM -->
+    <section class="form-panel">
+      <h2>Add Employee</h2>
+
+      <div class="form-grid">
+        <input id="id" type="number" placeholder="ID (required)" />
+        <input id="name" type="text" placeholder="Full Name" />
+        <input id="position" type="text" placeholder="Position" />
+        <input id="department" type="text" placeholder="Department" />
+
+        <select id="shift">
+          <option value="morning">Morning</option>
+          <option value="evening">Evening</option>
+          <option value="night">Night</option>
+        </select>
+
+        <input id="phoneExtension" type="text" placeholder="Phone Extension" />
+      </div>
+
+      <div class="toolbar">
+        <button onclick="createEmployee()">Create</button>
+        <button onclick="loadEmployees()">Refresh</button>
+      </div>
+    </section>
+
+    <!-- LIST -->
+    <section id="list" class="card-grid"></section>
+
+  </div>
+</main>
+
+<script src="./app.js"></script>
+
+<script>
+requireAuth();
+
+async function loadEmployees() {
+  try {
+    const employees = await apiGet("/employees");
+
+    const container = document.getElementById("list");
+
+    if (!employees.length) {
+      container.innerHTML = "<p>No employees found.</p>";
+      return;
+    }
+
+    container.innerHTML = employees.map(emp => `
+      <div class="data-card">
+        <h3>${emp.name}</h3>
+
+        <p><strong>ID:</strong> ${emp.id}</p>
+        <p><strong>Position:</strong> ${emp.position}</p>
+        <p><strong>Department:</strong> ${emp.department}</p>
+        <p><strong>Shift:</strong> ${emp.shift}</p>
+        <p><strong>Ext:</strong> ${emp.phoneExtension || "-"}</p>
+
+        <div class="card-actions">
+          <button onclick="deleteEmployee(${emp.id})">Delete</button>
+        </div>
+      </div>
+    `).join("");
+
+  } catch (err) {
+    showBox("messageBox", err.message, "error");
+  }
+}
+
+async function createEmployee() {
+  try {
+    const body = {
+      id: Number(document.getElementById("id").value),
+      name: document.getElementById("name").value,
+      position: document.getElementById("position").value,
+      department: document.getElementById("department").value,
+      shift: document.getElementById("shift").value,
+      phoneExtension: document.getElementById("phoneExtension").value
+    };
+
+    if (!body.id || !body.name || !body.position || !body.department) {
+      return showBox("messageBox", "Missing required fields", "error");
+    }
+
+    await apiPost("/employees", body);
+
+    showBox("messageBox", "Employee created", "success");
+
+    loadEmployees();
+
+  } catch (err) {
+    showBox("messageBox", err.message, "error");
+  }
+}
+
+async function deleteEmployee(id) {
+  if (!confirm("Delete this employee?")) return;
+
+  try {
+    await apiDelete(`/employees/${id}`);
+
+    showBox("messageBox", "Employee deleted", "success");
+
+    loadEmployees();
+
+  } catch (err) {
+    showBox("messageBox", err.message, "error");
+  }
+}
+
+loadEmployees();
+</script>
+
+</body>
+</html>

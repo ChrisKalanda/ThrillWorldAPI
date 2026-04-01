@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>ThrillWorld - Visitors</title>
+  <link rel="stylesheet" href="./style.css"/>
+</head>
+<body data-page="visitors">
+
+<header class="topbar">
+  <div class="brand">ThrillWorld</div>
+  <nav class="nav-links">
+    <a href="/profile.html">Profile</a>
+    <a href="/rides.html">Rides</a>
+    <a href="/visitors.html">Visitors</a>
+    <a href="/tickets.html">Tickets</a>
+    <a href="/employees.html">Employees</a>
+    <a href="/maintenance.html">Maintenance</a>
+    <button onclick="logout()">Logout</button>
+  </nav>
+</header>
+
+<main class="data-page">
+  <div class="data-shell">
+
+    <div class="page-heading">
+      <h1>Visitors Management</h1>
+      <p>Create, browse and manage park visitors through the ThrillWorld API.</p>
+    </div>
+
+    <div id="messageBox" class="alert"></div>
+
+    <section class="form-panel">
+      <h2>Add Visitor</h2>
+
+      <div class="form-grid">
+        <div>
+          <label for="visitorId">Visitor ID</label>
+          <input id="visitorId" type="number" placeholder="Enter visitor ID" />
+        </div>
+
+        <div>
+          <label for="visitorName">Full Name</label>
+          <input id="visitorName" type="text" placeholder="Enter full name" />
+        </div>
+
+        <div>
+          <label for="visitorAge">Age</label>
+          <input id="visitorAge" type="number" placeholder="Enter age" />
+        </div>
+
+        <div>
+          <label for="visitorHeight">Height (cm)</label>
+          <input id="visitorHeight" type="number" placeholder="Enter height" />
+        </div>
+
+        <div>
+          <label for="visitorEmail">Email</label>
+          <input id="visitorEmail" type="email" placeholder="Enter email address" />
+        </div>
+
+        <div>
+          <label for="visitorMembershipType">Membership Type</label>
+          <select id="visitorMembershipType">
+            <option value="regular">Regular</option>
+            <option value="student">Student</option>
+            <option value="family">Family</option>
+          </select>
+        </div>
+
+        <div class="full">
+          <label for="visitorBirthDate">Birth Date</label>
+          <input id="visitorBirthDate" type="date" />
+        </div>
+      </div>
+
+      <div class="toolbar">
+        <button onclick="createVisitor()">Create Visitor</button>
+        <button onclick="loadVisitors()">Refresh List</button>
+      </div>
+    </section>
+
+    <section id="visitorsContainer" class="card-grid"></section>
+
+  </div>
+</main>
+
+<script src="./app.js"></script>
+<script>
+  requireAuth();
+
+  async function loadVisitors() {
+    try {
+      const data = await apiGet("/visitors");
+      const visitors = Array.isArray(data) ? data : data.visitors || [];
+      const container = document.getElementById("visitorsContainer");
+
+      if (!visitors.length) {
+        container.innerHTML = `<div class="empty-state">No visitors found.</div>`;
+        showBox("messageBox", "No visitors found.", "success");
+        return;
+      }
+
+      container.innerHTML = visitors.map(visitor => `
+        <div class="data-card">
+          <h3>${visitor.name || "Unnamed Visitor"}</h3>
+
+          <p><strong>ID:</strong> ${visitor.id ?? "-"}</p>
+          <p><strong>Age:</strong> ${visitor.age ?? "-"}</p>
+          <p><strong>Height:</strong> ${visitor.height ?? "-"} cm</p>
+          <p><strong>Email:</strong> ${visitor.email || "-"}</p>
+          <p><strong>Membership:</strong> ${visitor.membershipType || "-"}</p>
+          <p><strong>Birth Date:</strong> ${formatDate(visitor.birthDate)}</p>
+
+          <div class="card-actions">
+            <button class="btn-delete" onclick="deleteVisitor(${visitor.id})">Delete</button>
+          </div>
+        </div>
+      `).join("");
+
+      showBox("messageBox", "Visitors loaded successfully.", "success");
+    } catch (error) {
+      showBox("messageBox", error.message, "error");
+    }
+  }
+
+  async function createVisitor() {
+    try {
+      const body = {
+        id: Number(document.getElementById("visitorId").value),
+        name: document.getElementById("visitorName").value.trim(),
+        age: Number(document.getElementById("visitorAge").value),
+        height: Number(document.getElementById("visitorHeight").value),
+        email: document.getElementById("visitorEmail").value.trim(),
+        membershipType: document.getElementById("visitorMembershipType").value,
+        birthDate: document.getElementById("visitorBirthDate").value || null
+      };
+
+      if (!body.id || !body.name || body.age < 0 || body.height < 0 || !body.age || !body.height) {
+        showBox("messageBox", "Please fill in all required fields correctly.", "error");
+        return;
+      }
+
+      await apiPost("/visitors", body);
+
+      showBox("messageBox", "Visitor created successfully.", "success");
+      clearVisitorForm();
+      loadVisitors();
+    } catch (error) {
+      showBox("messageBox", error.message, "error");
+    }
+  }
+
+  async function deleteVisitor(id) {
+    if (!confirm("Delete this visitor?")) return;
+
+    try {
+      await apiDelete(`/visitors/${id}`);
+      showBox("messageBox", "Visitor deleted successfully.", "success");
+      loadVisitors();
+    } catch (error) {
+      showBox("messageBox", error.message, "error");
+    }
+  }
+
+  function clearVisitorForm() {
+    document.getElementById("visitorId").value = "";
+    document.getElementById("visitorName").value = "";
+    document.getElementById("visitorAge").value = "";
+    document.getElementById("visitorHeight").value = "";
+    document.getElementById("visitorEmail").value = "";
+    document.getElementById("visitorMembershipType").value = "regular";
+    document.getElementById("visitorBirthDate").value = "";
+  }
+
+  function formatDate(dateString) {
+    if (!dateString) return "-";
+    const date = new Date(dateString);
+    if (isNaN(date.getTime())) return "-";
+    return date.toLocaleDateString();
+    }
+
+  loadVisitors();
+</script>
+
+</body>
+</html>

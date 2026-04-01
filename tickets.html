@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>ThrillWorld - Tickets</title>
+  <link rel="stylesheet" href="./style.css"/>
+</head>
+<body data-page="tickets">
+
+<header class="topbar">
+  <div class="brand">ThrillWorld</div>
+  <nav class="nav-links">
+    <a href="/profile.html">Profile</a>
+    <a href="/rides.html">Rides</a>
+    <a href="/visitors.html">Visitors</a>
+    <a href="/tickets.html">Tickets</a>
+    <a href="/employees.html">Employees</a>
+    <a href="/maintenance.html">Maintenance</a>
+    <button onclick="logout()">Logout</button>
+  </nav>
+</header>
+
+<main class="data-page">
+  <div class="data-shell">
+
+    <div class="page-heading">
+      <h1>Tickets Management</h1>
+      <p>Create, browse and manage park tickets through the ThrillWorld API.</p>
+    </div>
+
+    <div id="messageBox" class="alert"></div>
+
+    <section class="form-panel">
+      <h2>Add Ticket</h2>
+
+      <div class="form-grid">
+        <div>
+          <label for="ticketId">Ticket ID</label>
+          <input id="ticketId" type="number" placeholder="Enter ticket ID" />
+        </div>
+
+        <div>
+          <label for="ticketVisitorId">Visitor ID</label>
+          <input id="ticketVisitorId" type="number" placeholder="Enter visitor ID" />
+        </div>
+
+        <div>
+          <label for="ticketType">Ticket Type</label>
+          <select id="ticketType">
+            <option value="day">Day</option>
+            <option value="season">Season</option>
+            <option value="vip">VIP</option>
+          </select>
+        </div>
+
+        <div>
+          <label for="ticketPrice">Price</label>
+          <input id="ticketPrice" type="number" step="0.01" placeholder="Enter price" />
+        </div>
+
+        <div>
+          <label for="ticketPurchaseDate">Purchase Date</label>
+          <input id="ticketPurchaseDate" type="date" />
+        </div>
+
+        <div>
+          <label for="ticketValidUntil">Valid Until</label>
+          <input id="ticketValidUntil" type="date" />
+        </div>
+
+        <div>
+          <label for="ticketBasePrice">Base Price</label>
+          <input id="ticketBasePrice" type="number" step="0.01" placeholder="Enter base price" />
+        </div>
+
+        <div>
+          <label for="ticketDiscountCode">Discount Code</label>
+          <input id="ticketDiscountCode" type="text" placeholder="Enter discount code" />
+        </div>
+      </div>
+
+      <div class="toolbar">
+        <button onclick="createTicket()">Create Ticket</button>
+        <button onclick="loadTickets()">Refresh List</button>
+      </div>
+    </section>
+
+    <section id="ticketsContainer" class="card-grid"></section>
+
+  </div>
+</main>
+
+<script src="./app.js"></script>
+<script>
+  requireAuth();
+
+  async function loadTickets() {
+    try {
+      const data = await apiGet("/tickets");
+      const tickets = Array.isArray(data) ? data : data.tickets || [];
+      const container = document.getElementById("ticketsContainer");
+
+      if (!tickets.length) {
+        container.innerHTML = `<div class="empty-state">No tickets found.</div>`;
+        showBox("messageBox", "No tickets found.", "success");
+        return;
+      }
+
+      container.innerHTML = tickets.map(ticket => `
+        <div class="data-card">
+          <h3>${formatTicketTitle(ticket)}</h3>
+
+          <p><strong>ID:</strong> ${ticket.id ?? "-"}</p>
+          <p><strong>Visitor ID:</strong> ${ticket.visitorId ?? "-"}</p>
+          <p><strong>Type:</strong> ${ticket.type ?? "-"}</p>
+          <p><strong>Price:</strong> ${formatCurrency(ticket.price)}</p>
+          <p><strong>Purchase Date:</strong> ${formatDate(ticket.purchaseDate)}</p>
+          <p><strong>Valid Until:</strong> ${formatDate(ticket.validUntil)}</p>
+          <p><strong>Base Price:</strong> ${ticket.basePrice != null ? formatCurrency(ticket.basePrice) : "-"}</p>
+          <p><strong>Discount Code:</strong> ${ticket.discountCode || "-"}</p>
+
+          <div class="card-actions">
+            <button class="btn-delete" onclick="deleteTicket(${ticket.id})">Delete</button>
+          </div>
+        </div>
+      `).join("");
+
+      showBox("messageBox", "Tickets loaded successfully.", "success");
+    } catch (error) {
+      showBox("messageBox", error.message, "error");
+    }
+  }
+
+  async function createTicket() {
+    try {
+      const purchaseDateValue = document.getElementById("ticketPurchaseDate").value;
+      const validUntilValue = document.getElementById("ticketValidUntil").value;
+
+      const body = {
+        id: Number(document.getElementById("ticketId").value),
+        visitorId: Number(document.getElementById("ticketVisitorId").value),
+        type: document.getElementById("ticketType").value,
+        price: Number(document.getElementById("ticketPrice").value),
+        purchaseDate: purchaseDateValue ? new Date(purchaseDateValue).toISOString() : new Date().toISOString(),
+        validUntil: validUntilValue ? new Date(validUntilValue).toISOString() : null,
+        basePrice: document.getElementById("ticketBasePrice").value
+          ? Number(document.getElementById("ticketBasePrice").value)
+          : undefined,
+        discountCode: document.getElementById("ticketDiscountCode").value.trim() || undefined
+      };
+
+      if (!body.id || !body.visitorId || !body.type || body.price < 0 || !body.validUntil) {
+        showBox("messageBox", "Please fill in all required fields correctly.", "error");
+        return;
+      }
+
+      await apiPost("/tickets", body);
+
+      showBox("messageBox", "Ticket created successfully.", "success");
+      clearTicketForm();
+      loadTickets();
+    } catch (error) {
+      showBox("messageBox", error.message, "error");
+    }
+  }
+
+  async function deleteTicket(id) {
+    if (!confirm("Delete this ticket?")) return;
+
+    try {
+      await apiDelete(`/tickets/${id}`);
+      showBox("messageBox", "Ticket deleted successfully.", "success");
+      loadTickets();
+    } catch (error) {
+      showBox("messageBox", error.message, "error");
+    }
+  }
+
+  function clearTicketForm() {
+    document.getElementById("ticketId").value = "";
+    document.getElementById("ticketVisitorId").value = "";
+    document.getElementById("ticketType").value = "day";
+    document.getElementById("ticketPrice").value = "";
+    document.getElementById("ticketPurchaseDate").value = "";
+    document.getElementById("ticketValidUntil").value = "";
+    document.getElementById("ticketBasePrice").value = "";
+    document.getElementById("ticketDiscountCode").value = "";
+  }
+
+  function formatDate(dateString) {
+    if (!dateString) return "-";
+    const date = new Date(dateString);
+    if (isNaN(date.getTime())) return "-";
+    return date.toLocaleDateString();
+  }
+
+  function formatCurrency(value) {
+    if (value == null || isNaN(value)) return "-";
+    return "$" + Number(value).toFixed(2);
+  }
+
+  function formatTicketTitle(ticket) {
+    const type = ticket.type ? ticket.type.toUpperCase() : "TICKET";
+    return `${type} Ticket`;
+  }
+
+  loadTickets();
+</script>
+
+</body>
+</html>
