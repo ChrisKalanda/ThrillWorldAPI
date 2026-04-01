@@ -246,36 +246,36 @@ It demonstrates:
 ### 🔐 Authentication
 
 #### Login Page
-Login
+![Login] (screenshots/login.png)
 
 #### Register Page
-Register
+![Register](screenshots/register.png)
 
 ---
 
 ### 👤 User Dashboard
 
 #### Profile Page
-Profile
+![Profile] (screenshots/profile.png)
 
 ---
 
 ### 🎢 Park Management
 
 #### Rides Management
-Rides
+![Rides] (screenshots/rides.png)
 
 #### Visitors Management
-Visitors
+![Visitors] (screenshots/visitors.png)
 
 #### Tickets Management
-Tickets
+![Tickets] (screenshots/tickets.png)
 
 #### Employees Management
-Employees
+![Employees] (screenshots/employees.png)
 
 #### Maintenance Management
-Maintenance
+![Maintenance] (screenshots/maintenance.png)
 
 ---
 
