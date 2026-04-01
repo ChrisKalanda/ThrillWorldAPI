@@ -17,6 +17,8 @@ Backend
  • CORS
  • Morgan
 
+ ---
+
 Frontend
  • HTML5
  • CSS3 (custom premium UI)
@@ -28,6 +30,8 @@ Authentication
 
 Development
  • Nodemon
+
+ ⸻
 
  📂 Project Structure
 
@@ -68,12 +72,13 @@ thrillworld-api/
       ├─ employeeRoutes.js
       └─maintenanceRoutes.js
 
-
+⸻
 
 🔧 Installation
 
 npm install
 
+⸻
 
 ⚙️ Environment Variables
 Create a .env file at the root:
@@ -84,7 +89,7 @@ JWT_SECRET=your_super_secret_key
 JWT_EXPIRES_IN=7d
 NODE_ENV=development
 
-
+⸻
 
 ▶️ Run the Server
 
@@ -92,13 +97,13 @@ Production
 
 npm start
 
-
+---
 
 Development
 
 npm run dev
 
-
+⸻
 
 🌐 API Endpoints
 
@@ -176,7 +181,7 @@ Accessible via browser:
  4. Protected routes use the token
  5. Profile page fetches /api/auth/me
 
-
+⸻
 
  ✅ Quick Testing (Sample JSON)
 
@@ -191,6 +196,7 @@ Create Ride
   "status": "operational"
 }
 
+---
 
 Create Visitor
 
@@ -201,6 +207,7 @@ Create Visitor
   "height": 165
 }
 
+---
 
 Purchase Ticket
 
@@ -212,7 +219,7 @@ Purchase Ticket
   "validUntil": "2025-01-02T00:00:00.000Z"
 }
 
-
+⸻
 
 🚀 Features
  • Full CRUD API (RESTful)
@@ -237,9 +244,6 @@ It demonstrates:
 
 ⸻
 
-
-
----
 
 ## 📸 Screenshots
 
@@ -277,7 +281,7 @@ It demonstrates:
 #### Maintenance Management
 ![Maintenance](screenshots/maintenance1.png) ![Maintenance](screenshots/maintenance2.png)
 
----
+⸻
 
 ## 🎨 UI Highlights
 
