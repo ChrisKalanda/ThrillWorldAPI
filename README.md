@@ -275,7 +275,7 @@ It demonstrates:
 ![Employees](screenshots/employees.png)
 
 #### Maintenance Management
-![Maintenance](screenshots/maintenance1.png)(screenshots/maintenance2.png)
+![Maintenance](screenshots/maintenance1.png) ![Maintenance](screenshots/maintenance2.png)
 
 ---
 
