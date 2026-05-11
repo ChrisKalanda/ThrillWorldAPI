@@ -281,7 +281,7 @@ It demonstrates:
 #### Maintenance Management
 ![Maintenance](screenshots/maintenance1.png) ![Maintenance](screenshots/maintenance2.png)
 
-⸻
+---
 
 ## 🎨 UI Highlights
 
@@ -290,6 +290,12 @@ It demonstrates:
 - Card-based layout
 - Responsive interface
 - Interactive dashboard experience
+
+---
+
+## 🌐 Live Demo
+
+[View the live project](https://thrillworldapi-3.onrender.com/login.html)
 
 ---
 
